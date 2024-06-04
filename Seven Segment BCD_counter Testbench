@@ -1,0 +1,64 @@
+module part2_tb;
+
+
+    reg enable;
+    reg load;
+    reg clock;
+    reg [3:0] input_digit0;
+    reg [3:0] input_digit1;
+    reg [3:0] input_digit2;
+    reg [3:0] input_digit3;
+
+
+
+
+    wire [3:0] output_anodes;
+    wire [6:0] output_seg;
+
+
+   part2 ddut (
+        .enable(enable),
+        .load(load),
+        .clock(clock),
+        .input_digit0(input_digit0),
+        .input_digit1(input_digit1),
+        .input_digit2(input_digit2),
+        .input_digit3(input_digit3),
+        .output_anodes(output_anodes),
+        .output_seg(output_seg)
+    );
+
+
+    always #5 clock = ~clock;
+
+
+
+
+    initial begin
+ 
+        enable = 1;
+        load = 0;
+        clock = 0;
+        input_digit0 = 4'b0000;
+        input_digit1 = 4'b0000;
+        input_digit2 = 4'b0000;
+        input_digit3 = 4'b0000;
+
+
+
+
+        #10 load = 1;
+        #10 input_digit0 = 4'b0010;
+        #10 input_digit1 = 4'b0011;
+        #10 input_digit2 = 4'b0100;
+        #10 input_digit3 = 4'b0101;
+        #10 load = 0;
+
+
+
+
+        #100 $finish;
+    end
+
+
+endmodule
