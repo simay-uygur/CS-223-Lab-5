@@ -1,0 +1,89 @@
+module newClock (input logic clk , 
+output logic led);
+
+reg clk_state;
+reg [30:0] counter;
+always @(posedge clk)
+begin
+counter <= counter + 1 ;
+if (counter == 150_000_000)
+begin
+counter <= 0 ;
+clk_state <= ~clk_state;
+end
+end
+assign led = clk_state;
+endmodule
+
+
+module d_flip_flop(input logic clk,
+input logic reset,
+input logic [2:0] d,
+output logic [2:0] q);
+
+
+always_ff @(posedge clk)
+if (reset) q <= 4'b0;
+else q <= d;
+endmodule
+
+
+module next_logic_cs(input logic s0_input, s1_input, s2_input, sa_input, sb_input,
+                    output logic s0_output, s1_output, s2_output);
+    always @(*)
+    begin
+        if (sa_input && sb_input)
+        begin
+        end
+        else if (sa_input)
+        begin
+            s0_output <= s1_input & ~s0_input | (~s1_input & ~s0_input) & (~s2_input & 1'b0 | s2_input & ~sb_input);
+            s1_output <= s1_input ^ s0_input;
+            s2_output <= ~s0_input & s1_input & s2_input | s0_input & s1_input & ~s2_input | ~s1_input & s2_input;
+        end
+        else if (sb_input)
+        begin
+            s0_output <= s1_input & ~s0_input | (~s1_input & ~s0_input) & (~s2_input & ~sa_input | s2_input & 1'b0);
+            s1_output <= s1_input ^ s0_input;
+            s2_output <= ~s0_input & s1_input & s2_input | s0_input & s1_input & ~s2_input | ~s1_input & s2_input;
+        end
+        else
+        begin
+            s0_output <= s1_input & ~s0_input | (~s1_input & ~s0_input) & (~s2_input & ~sa_input | s2_input & ~sb_input);
+            s1_output <= s1_input ^ s0_input;
+            s2_output <= ~s0_input & s1_input & s2_input | s0_input & s1_input & ~s2_input | ~s1_input & s2_input;
+        end
+    end
+endmodule
+
+
+module modified_output_logic(input s0_in, s1_in, s2_in,
+                             output [5:0] out);
+    assign out[0] = 1;
+    assign out[3] = 1;
+    assign out[2] = (s2_in | ~s1_in | ~s0_in) & (~s2_in | s1_in | s0_in) & (~s2_in | s1_in | ~s0_in);
+    assign out[1] = (~s2_in | s1_in | ~s0_in) & (s2_in | ~s1_in | ~s0_in);
+    assign out[5] = (s2_in | s1_in | s0_in) & (s2_in | s1_in | ~s0_in) & (~s2_in | ~s1_in | ~s0_in);
+    assign out[4] = (s2_in | s1_in | ~s0_in) & (~s2_in | ~s1_in | ~s0_in);
+endmodule
+
+
+module modified_final_state_machine (
+    input input_a, input_b, input_clock,
+    output reg [5:0] output_signal
+);
+
+
+    wire clock_1_sec;
+    newClock clkInstance(input_clock, clock_1_sec);
+    
+    wire [2:0] data_out;
+    wire [2:0] q_out;
+    
+    next_logic_cs logic_instance(q_out[0], q_out[1], q_out[2], input_a, input_b, data_out[0], data_out[1], data_out[2]);
+    
+   d_flip_flop flop(clock_1_sec, 1'b0, data_out, q_out);
+    
+    modified_output_logic outt_lo(q_out[0], q_out[1], q_out[2], output_signal);
+    
+endmodule
