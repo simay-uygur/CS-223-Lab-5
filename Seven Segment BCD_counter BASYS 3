@@ -14,3 +14,92 @@ module slow_clock_counter(input logic clk, output logic led);
     
     assign led = clk_1_sec;
 endmodule
+
+
+module part2(
+    input logic enable ,
+    input logic load ,
+    input logic clock,
+    input logic [3:0] input_digit0 ,
+    input logic [3:0] input_digit1 ,
+    input logic [3:0] input_digit2 ,
+    input logic [3:0] input_digit3 ,
+    output reg [3:0] output_anodes ,
+    output logic [6:0] output_seg
+);
+
+
+    logic [3:0] one_reg ;
+    logic [3:0] ten_reg ;
+    logic [3:0] hun_reg ;
+    logic [3:0] tho_reg ;
+    logic [1:0] index_reg ;
+    logic [19:0] refresh_reg ;
+    wire clock_signal ;
+    slowClockCounter slow_clock_instance(clock , clock_signal) ;
+
+
+    always_ff @(posedge clock_signal) begin
+        if (enable) begin
+            if (load) begin
+                one_reg <= input_digit0 ;
+                ten_reg <= input_digit1 ;
+                hun_reg <= input_digit2 ;
+                tho_reg <= input_digit3 ;
+            end
+            else begin
+                if (one_reg == 4'b1001) begin
+                    one_reg <= 0 ;
+                    ten_reg <= ten_reg + 1 ;
+                    if (ten_reg == 4'b1001) begin
+                        ten_reg <= 0 ;
+                        hun_reg <= hun_reg + 1 ;
+                        if (hun_reg == 4'b1001) begin
+                            hun_reg <= 0 ;
+                            tho_reg <= tho_reg + 1 ;
+                        end
+                    end
+                end
+                one_reg <= one_reg + 1 ;
+            end
+        end
+    end
+
+
+    always_ff @(posedge clock) begin
+        refresh_reg <= refresh_reg + 1 ;
+    end
+
+
+    always @(*) begin
+        index_reg = refresh_reg[19:18] ;
+    end
+
+
+    logic [3:0] led ;
+    always @(*) begin
+        case(index_reg)
+            0 : begin output_anodes <= 4'b1110 ; led <= one_reg ; end
+            1 : begin output_anodes <= 4'b1101 ; led <= ten_reg ; end
+            2 : begin output_anodes <= 4'b1011 ; led <= hun_reg ; end
+            3 : begin output_anodes <= 4'b0111 ; led <= tho_reg ; end
+        endcase
+    end
+
+
+    always @(*) begin
+        case(led)
+            0 : output_seg = 7'b0000001;
+            1 : output_seg = 7'b1001111;
+            2 : output_seg = 7'b0010010;
+            3 : output_seg = 7'b0000110;
+            4 : output_seg = 7'b1001100;
+            5 : output_seg = 7'b0100100;
+            6 : output_seg = 7'b0100000;
+            7 : output_seg = 7'b0001111;
+            8 : output_seg = 7'b0000000;
+            9 : output_seg = 7'b0000100;
+            default : output_seg = 7'b0000001;
+        endcase
+    end
+endmodule
