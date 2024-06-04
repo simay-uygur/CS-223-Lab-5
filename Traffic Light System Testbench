@@ -1,0 +1,39 @@
+module fsmm_tb;
+
+    reg input_a;
+    reg input_b;
+    reg input_clock;
+
+    wire [5:0] output_signal;
+
+    modified_final_state_machine uut (
+        .input_a(input_a),
+        .input_b(input_b),
+        .input_clock(input_clock),
+        .output_signal(output_signal)
+    );
+
+    always #5 input_clock = ~input_clock;
+
+    initial begin
+
+
+        input_a = 0;
+        input_b = 0;
+        input_clock = 0;
+
+
+      #10 input_a = 1;
+        #10 input_b = 1;
+        #100 input_a = 0;
+        #100 input_b = 1;
+        #100 input_a = 1;
+        #100 input_b = 0;
+        #100 input_a = 0;
+        #100 input_b = 0;
+
+        #100 $finish;
+    end
+
+
+endmodule
