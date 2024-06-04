@@ -1,0 +1,16 @@
+module slow_clock_counter(input logic clk, output logic led);
+    logic clk_1_sec;
+    logic [25:0] count;
+    
+    always @(posedge clk)
+    begin
+        count <= count + 1;
+        if (count == 26'h5F5E100)
+        begin
+            count <= 0;
+            clk_1_sec <= ~clk_1_sec;
+        end
+    end
+    
+    assign led = clk_1_sec;
+endmodule
